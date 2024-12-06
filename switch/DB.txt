@@ -1,0 +1,106 @@
+!
+version 12.4
+service timestamps debug datetime msec
+service timestamps log datetime msec
+no service password-encryption
+!
+hostname SW1
+!
+boot-start-marker
+boot-end-marker
+!
+no ip domain lookup
+!
+! Désactiver les services inutiles pour réduire la surface d'attaque.
+no ip http server
+no ip http secure-server
+!
+! Configuration des VLANs.
+vlan 10
+ name VLAN_10
+!
+vlan 20
+ name VLAN_20
+!
+! Configuration des interfaces.
+interface FastEthernet1/0
+ shutdown
+!
+interface FastEthernet1/1
+ switchport access vlan 10
+ switchport mode access
+ spanning-tree portfast
+ spanning-tree bpduguard enable
+!
+interface FastEthernet1/2
+ switchport access vlan 20
+ switchport mode access
+ spanning-tree portfast
+ spanning-tree bpduguard enable
+!
+interface FastEthernet1/3
+ shutdown
+!
+interface FastEthernet1/4
+ shutdown
+!
+interface FastEthernet1/5
+ switchport mode trunk
+ switchport nonegotiate
+ spanning-tree portfast trunk
+!
+interface FastEthernet1/6
+ shutdown
+!
+interface FastEthernet1/7
+ shutdown
+!
+interface FastEthernet1/8
+ shutdown
+!
+! Configuration de l'adresse IP du switch sur le VLAN 10.
+interface Vlan1
+ no ip address
+ shutdown
+!
+interface Vlan10
+ ip address 10.2.0.242 255.255.255.0
+!
+interface Vlan20
+ no ip address
+ shutdown
+!
+! Désactiver le DHCP client pour éviter que le switch demande une adresse IP.
+no ip dhcp-client enable
+!
+! Protection contre les attaques DHCP Snooping.
+ip dhcp snooping
+ip dhcp snooping vlan 10,20
+no ip dhcp snooping information option
+!
+! Ports configurés comme fiables pour DHCP Snooping.
+interface FastEthernet1/5
+ ip dhcp snooping trust
+!
+! Protéger le plan de contrôle du switch.
+ip arp inspection vlan 10,20
+ip tcp synwait-time 5
+!
+! Désactiver CDP pour réduire la fuite d'informations réseau.
+no cdp run
+!
+! Configuration de sécurité des accès.
+line con 0
+ exec-timeout 5 0
+ logging synchronous
+ privilege level 15
+line vty 0 4
+ transport input ssh
+ exec-timeout 5 0
+ login local
+!
+! Activer SSH et désactiver Telnet.
+crypto key generate rsa modulus 2048
+ip ssh version 2
+!
+end
