@@ -21,23 +21,18 @@ no ip domain lookup
 multilink bundle-name authenticated
 !
 !
-! Activer la journalisation des configurations
 archive
  log config
   hidekeys
 !
-! Réduire la durée de timeout des connexions TCP
 ip tcp synwait-time 5
 !
-! Configurer le DHCP snooping pour prévenir les attaques DHCP
 ip dhcp snooping
 ip dhcp snooping vlan 10,20
 no ip dhcp snooping information option
 !
-! Prévenir les attaques ARP (Dynamic ARP Inspection)
 ip arp inspection vlan 10,20
 !
-! Configurer les interfaces physiques
 interface FastEthernet0/0
  no ip address
  no ip route-cache
@@ -127,13 +122,11 @@ interface Vlan20
  ip address 10.1.20.242 255.255.255.0
  no ip route-cache
 !
-! Désactiver les services inutiles pour minimiser les attaques potentielles
 no ip http server
 no ip http secure-server
 no cdp run
 no ip proxy-arp
 !
-! Contrôle des plans de gestion et de contrôle
 control-plane
  service-policy input CONTROL_PLANE_POLICY
 !
@@ -150,7 +143,6 @@ line vty 0 4
  transport input ssh
  exec-timeout 5 0
 !
-! Activer SSH et désactiver Telnet
 crypto key generate rsa modulus 2048
 ip ssh version 2
 !
