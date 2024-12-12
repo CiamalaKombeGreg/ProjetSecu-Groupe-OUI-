@@ -1,20 +1,13 @@
 !
-!
-!
-!
-!
-
-!
 version 12.4
 service timestamps debug datetime msec
 service timestamps log datetime msec
 no service password-encryption
 !
-hostname R1
+hostname SW2
 !
 boot-start-marker
 boot-end-marker
-!
 !
 no aaa new-model
 memory-size iomem 5
@@ -22,46 +15,29 @@ no ip routing
 no ip icmp rate-limit unreachable
 no ip cef
 !
-!
-!
-!
 no ip domain lookup
 !
 multilink bundle-name authenticated
 !
-!
-!
-!
-!
-!
-!
-!
-!
-!
-!
-!
-!
-!
-!
-!
-!
-!
-!
-!
-!
+! Archive pour garder un historique des changements
 archive
  log config
   hidekeys
-! 
 !
+! Limiter les attaques DoS TCP
+ip tcp synwait-time 5
+!
+! Configuration des VLANs et de DHCP Snooping
+ip dhcp snooping
+ip dhcp snooping vlan 1
+no ip dhcp snooping information option
+!
+! Activer Dynamic ARP Inspection (DAI)
+ip arp inspection vlan 1
 !
 vlan internal allocation policy ascending
 !
-ip tcp synwait-time 5
-!
-!
-!
-!
+! Configuration des interfaces
 interface FastEthernet0/0
  no ip address
  no ip route-cache
@@ -79,66 +55,36 @@ interface FastEthernet0/1
 interface FastEthernet1/0
  no switchport
  no ip address
+ shutdown
 !
+! Supposons que FastEthernet1/1 est un port de confiance (uplink)
 interface FastEthernet1/1
+ switchport mode access
+ ip dhcp snooping trust
+ no shut
 !
-interface FastEthernet1/2
-!
-interface FastEthernet1/3
-!
-interface FastEthernet1/4
-!
-interface FastEthernet1/5
-!
-interface FastEthernet1/6
-!
-interface FastEthernet1/7
-!
-interface FastEthernet1/8
-!
-interface FastEthernet1/9
-!
-interface FastEthernet1/10
-!
-interface FastEthernet1/11
-!
-interface FastEthernet1/12
-!
-interface FastEthernet1/13
-!
-interface FastEthernet1/14
-!
-interface FastEthernet1/15
+! Configurer les ports utilisateurs comme non de confiance
+interface range FastEthernet1/2 - 1/15
+ switchport mode access
+ ip dhcp snooping limit rate 10
+ no shut
 !
 interface Vlan1
  ip address 10.2.5.242 255.255.255.0
  no ip route-cache
+ no shut
 !
 ip default-gateway 10.2.5.254
-ip forward-protocol nd
-!
 !
 no ip http server
 no ip http secure-server
 !
-no cdp log mismatch duplex
-!
-!
-!
-!
-!
+! Désactiver CDP pour éviter les fuites d'informations
+no cdp run
 !
 control-plane
 !
-!
-!
-!
-!
-!
-!
-!
-!
-!
+! Sécurisation de l'accès console et distant
 line con 0
  exec-timeout 0 0
  privilege level 15
@@ -148,7 +94,7 @@ line aux 0
  privilege level 15
  logging synchronous
 line vty 0 4
+ transport input ssh
  login
-!
 !
 end
