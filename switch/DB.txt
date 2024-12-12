@@ -1,6 +1,4 @@
 !
-
-!
 version 12.4
 service timestamps debug datetime msec
 service timestamps log datetime msec
@@ -11,130 +9,123 @@ hostname R2
 boot-start-marker
 boot-end-marker
 !
-!
 no aaa new-model
 memory-size iomem 5
 no ip icmp rate-limit unreachable
 ip cef
-!
-!
-!
 !
 no ip domain lookup
 !
 multilink bundle-name authenticated
 !
 !
+! Activer le DHCP Snooping sur le switch
+ip dhcp snooping
+ip dhcp snooping vlan 10,20
+no ip dhcp snooping information option
+!
+! Configurer les interfaces de confiance pour le DHCP Snooping
+interface FastEthernet1/3
+ description Trunk vers le routeur ou switch principal
+ switchport mode trunk
+ ip dhcp snooping trust
+!
+! Configurer les interfaces d'accès pour le DHCP Snooping
+interface FastEthernet1/1
+ description Accès utilisateur VLAN 10
+ switchport access vlan 10
+ ip dhcp snooping limit rate 10
+!
+interface FastEthernet1/2
+ description Accès utilisateur VLAN 20
+ switchport access vlan 20
+ ip dhcp snooping limit rate 10
 !
 !
+! Activer Dynamic ARP Inspection (DAI) sur les VLANs
+ip arp inspection vlan 10,20
 !
+! Configurer les interfaces de confiance pour DAI
+interface FastEthernet1/3
+ ip arp inspection trust
 !
-!
-!
-!
-!
-!
-!
-!
-!
-!
-!
-!
-!
-!
-!
-!
-archive
- log config
-  hidekeys
-! 
-!
-!
-!
-ip tcp synwait-time 5
-!
-!
-!
-!
-interface FastEthernet0/0
- no ip address
- shutdown
- duplex auto
- speed auto
-!
-interface FastEthernet0/1
- no ip address
- shutdown
- duplex auto
- speed auto
-!
-interface FastEthernet1/0
-!
+! Configurer les interfaces d'accès pour DAI
 interface FastEthernet1/1
  switchport access vlan 10
+ ip arp inspection limit rate 15
 !
 interface FastEthernet1/2
  switchport access vlan 20
+ ip arp inspection limit rate 15
 !
-interface FastEthernet1/3
- switchport mode trunk
+! Configurer la prévention de spoofing IP avec Port Security
+interface FastEthernet1/1
+ switchport port-security
+ switchport port-security maximum 2
+ switchport port-security violation restrict
+ switchport port-security mac-address sticky
 !
+interface FastEthernet1/2
+ switchport port-security
+ switchport port-security maximum 2
+ switchport port-security violation restrict
+ switchport port-security mac-address sticky
+!
+! Désactiver les ports inutilisés et les sécuriser
 interface FastEthernet1/4
+ shutdown
 !
 interface FastEthernet1/5
+ shutdown
 !
 interface FastEthernet1/6
+ shutdown
 !
 interface FastEthernet1/7
+ shutdown
 !
 interface FastEthernet1/8
+ shutdown
 !
 interface FastEthernet1/9
+ shutdown
 !
 interface FastEthernet1/10
+ shutdown
 !
 interface FastEthernet1/11
+ shutdown
 !
 interface FastEthernet1/12
+ shutdown
 !
 interface FastEthernet1/13
+ shutdown
 !
 interface FastEthernet1/14
+ shutdown
 !
 interface FastEthernet1/15
+ shutdown
 !
-interface Vlan1
- no ip address
-!
+! Configurer les VLANs avec des adresses IP
 interface Vlan10
  ip address 10.3.10.242 255.255.255.0
+ no ip redirects
 !
 interface Vlan20
  ip address 10.3.20.242 255.255.255.0
+ no ip redirects
 !
 ip forward-protocol nd
-!
 !
 no ip http server
 no ip http secure-server
 !
 no cdp log mismatch duplex
 !
-!
-!
-!
-!
-!
+! Protéger le plan de contrôle
 control-plane
-!
-!
-!
-!
-!
-!
-!
-!
-!
 !
 line con 0
  exec-timeout 0 0
@@ -146,6 +137,6 @@ line aux 0
  logging synchronous
 line vty 0 4
  login
-!
+ transport input ssh
 !
 end
