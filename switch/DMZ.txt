@@ -1,61 +1,32 @@
 !
-
-!
 version 12.4
 service timestamps debug datetime msec
 service timestamps log datetime msec
 no service password-encryption
 !
-hostname R3
+hostname SW3
 !
 boot-start-marker
 boot-end-marker
-!
 !
 no aaa new-model
 memory-size iomem 5
 no ip icmp rate-limit unreachable
 ip cef
 !
-!
-!
-!
 no ip domain lookup
 !
 multilink bundle-name authenticated
 !
-!
-!
-!
-!
-!
-!
-!
-!
-!
-!
-!
-!
-!
-!
-!
-!
-!
-!
-!
-!
+! Archive pour garder un suivi des changements de configuration
 archive
  log config
   hidekeys
-! 
 !
-!
-!
+! Limiter les attaques DoS par TCP
 ip tcp synwait-time 5
 !
-!
-!
-!
+! Configuration des interfaces
 interface FastEthernet0/0
  no ip address
  shutdown
@@ -68,66 +39,42 @@ interface FastEthernet0/1
  duplex auto
  speed auto
 !
-interface FastEthernet1/0
+! Configuration des VLANs et de DHCP Snooping
+ip dhcp snooping
+ip dhcp snooping vlan 1
+no ip dhcp snooping information option
 !
-interface FastEthernet1/1
+! Activer Dynamic ARP Inspection (DAI)
+ip arp inspection vlan 1
 !
-interface FastEthernet1/2
-!
-interface FastEthernet1/3
-!
-interface FastEthernet1/4
-!
-interface FastEthernet1/5
-!
-interface FastEthernet1/6
-!
-interface FastEthernet1/7
-!
-interface FastEthernet1/8
-!
-interface FastEthernet1/9
-!
-interface FastEthernet1/10
-!
-interface FastEthernet1/11
-!
-interface FastEthernet1/12
-!
-interface FastEthernet1/13
-!
-interface FastEthernet1/14
-!
-interface FastEthernet1/15
-!
+! Configuration de l'interface VLAN 1
 interface Vlan1
  ip address 10.5.1.242 255.255.255.0
+ no shut
+!
+! Configuration des ports FastEthernet
+! Supposons que FastEthernet1/0 est un port de confiance (uplink)
+interface FastEthernet1/0
+ switchport mode access
+ ip dhcp snooping trust
+ no shut
+!
+! Configurer les ports utilisateur comme non de confiance
+interface range FastEthernet1/1 - 1/15
+ switchport mode access
+ ip dhcp snooping limit rate 10
+ no shut
 !
 ip default-gateway 10.5.1.254
-ip forward-protocol nd
-!
 !
 no ip http server
 no ip http secure-server
 !
 no cdp log mismatch duplex
 !
-!
-!
-!
-!
-!
 control-plane
 !
-!
-!
-!
-!
-!
-!
-!
-!
-!
+! Configuration des lignes console et VTY
 line con 0
  exec-timeout 0 0
  privilege level 15
@@ -138,6 +85,6 @@ line aux 0
  logging synchronous
 line vty 0 4
  login
-!
+ transport input ssh
 !
 end
